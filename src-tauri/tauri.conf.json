@@ -1,0 +1,53 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "起身一下",
+  "version": "0.1.0",
+  "identifier": "com.breakpet.desktop",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "macOSPrivateApi": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "起身一下 · 桌面宠物",
+        "width": 1160,
+        "height": 900,
+        "minWidth": 720,
+        "minHeight": 640,
+        "resizable": true,
+        "visible": true,
+        "center": true
+      },
+      {
+        "label": "pet",
+        "title": "悬浮宠物",
+        "url": "pet.html",
+        "width": 250,
+        "height": 190,
+        "x": 48,
+        "y": 96,
+        "decorations": false,
+        "transparent": true,
+        "alwaysOnTop": true,
+        "visibleOnAllWorkspaces": true,
+        "skipTaskbar": true,
+        "focus": false,
+        "resizable": false,
+        "shadow": false,
+        "visible": true
+      }
+    ],
+    "security": { "csp": null }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Utility",
+    "shortDescription": "用桌面宠物提醒你起身、喝水和休息"
+  }
+}

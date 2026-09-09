@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>起身一下 · 悬浮宠物</title>
+  </head>
+  <body>
+    <main class="floating-pet" data-tauri-drag-region title="拖动调整位置，点击宠物打开控制面板">
+      <button class="pet-button" data-open-main aria-label="打开起身一下控制面板">
+        <span class="pet-aura"></span>
+        <span class="pet-shadow"></span>
+        <span class="pet-ears ear-left"></span><span class="pet-ears ear-right"></span>
+        <span class="pet-body"><span class="pet-face"><i class="eye eye-left"></i><i class="eye eye-right"></i><i class="snout"></i></span><i class="paw paw-left"></i><i class="paw paw-right"></i><i class="cup">◒</i></span>
+        <span class="pet-status" data-pet-status>60:00</span>
+      </button>
+      <div class="pet-bubble" data-pet-bubble>我陪你工作</div>
+    </main>
+    <script type="module" src="/src/pet.ts"></script>
+  </body>
+</html>
