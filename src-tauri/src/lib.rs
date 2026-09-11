@@ -2,21 +2,40 @@
 
 use tauri::{
     menu::{MenuBuilder, MenuItemBuilder},
-    tray::{TrayIconBuilder, TrayIconEvent},
+    tray::TrayIconBuilder,
     Emitter, Manager, WindowEvent,
 };
 
 #[cfg(desktop)]
 use tauri_plugin_autostart::MacosLauncher;
 
+fn is_background_launch<I, S>(args: I) -> bool
+where
+    I: IntoIterator<Item = S>,
+    S: AsRef<str>,
+{
+    args.into_iter().any(|arg| arg.as_ref() == "--background")
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+    let background_launch = is_background_launch(std::env::args());
+
     tauri::Builder::default()
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             Some(vec!["--background"]),
         ))
-        .setup(|app| {
+        .setup(move |app| {
+            if let Some(window) = app.get_webview_window("main") {
+                if background_launch {
+                    let _ = window.hide();
+                } else {
+                    let _ = window.show();
+                    let _ = window.set_focus();
+                }
+            }
+
             let show = MenuItemBuilder::with_id("show", "打开起身一下").build(app)?;
             let break_now = MenuItemBuilder::with_id("break-now", "现在休息").build(app)?;
             let quit = MenuItemBuilder::with_id("quit", "退出应用").build(app)?;
@@ -45,12 +64,6 @@ pub fn run() {
                     "quit" => app.exit(0),
                     _ => {}
                 })
-                .on_tray_icon_event(|tray, _event: TrayIconEvent| {
-                    if let Some(window) = tray.app_handle().get_webview_window("main") {
-                        let _ = window.show();
-                        let _ = window.set_focus();
-                    }
-                })
                 .build(app)?;
 
             Ok(())
@@ -63,4 +76,15 @@ pub fn run() {
         })
         .run(tauri::generate_context!())
         .expect("error while running break-pet");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_background_launch;
+
+    #[test]
+    fn recognizes_background_launch_flag() {
+        assert!(is_background_launch(["break-pet", "--background"]));
+        assert!(!is_background_launch(["break-pet"]));
+    }
 }
