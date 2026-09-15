@@ -9,7 +9,7 @@ use tauri::{
 #[cfg(desktop)]
 use tauri_plugin_autostart::MacosLauncher;
 
-fn is_background_launch<I, S>(args: I) -> bool
+fn has_background_launch_flag<I, S>(args: I) -> bool
 where
     I: IntoIterator<Item = S>,
     S: AsRef<str>,
@@ -17,15 +17,21 @@ where
     args.into_iter().any(|arg| arg.as_ref() == "--background")
 }
 
+#[tauri::command]
+fn is_background_launch() -> bool {
+    has_background_launch_flag(std::env::args())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let background_launch = is_background_launch(std::env::args());
+    let background_launch = is_background_launch();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_autostart::init(
             MacosLauncher::LaunchAgent,
             Some(vec!["--background"]),
         ))
+        .invoke_handler(tauri::generate_handler![is_background_launch])
         .setup(move |app| {
             if let Some(window) = app.get_webview_window("main") {
                 if background_launch {
@@ -80,11 +86,11 @@ pub fn run() {
 
 #[cfg(test)]
 mod tests {
-    use super::is_background_launch;
+    use super::has_background_launch_flag;
 
     #[test]
     fn recognizes_background_launch_flag() {
-        assert!(is_background_launch(["break-pet", "--background"]));
-        assert!(!is_background_launch(["break-pet"]));
+        assert!(has_background_launch_flag(["break-pet", "--background"]));
+        assert!(!has_background_launch_flag(["break-pet"]));
     }
 }

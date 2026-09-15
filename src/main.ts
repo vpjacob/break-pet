@@ -1,6 +1,7 @@
 import './styles.css';
 import { BreakTimer, type TimerMode, type TimerSnapshot } from './timer';
 import { createStretchPlayer } from './stretch';
+import { shouldAutoStartTimer } from './startup';
 
 const STORAGE_KEY = 'break-pet-state-v1';
 const DEMO_WORK_SECONDS = 20;
@@ -107,7 +108,7 @@ app.innerHTML = `
       <label class="range-label">宠物大小 <span><input name="pet-size" type="range" min="140" max="260" step="10" value="180" /><output data-pet-size-value>180px</output></span></label>
       <label class="range-label">宠物透明度 <span><input name="pet-opacity" type="range" min="30" max="100" step="5" value="100" /><output data-pet-opacity-value>100%</output></span></label>
       <label class="floating-option">显示悬浮宠物 <span><input name="floating-pet" type="checkbox" checked /></span></label>
-      <label class="autostart-option">开机自动启动 <span><input name="autostart" type="checkbox" /></span></label>
+      <label class="autostart-option">开机自动启动并计时 <span><input name="autostart" type="checkbox" /></span></label>
       <div class="dialog-tip">建议每工作 60 分钟，休息 5 分钟。你可以用“快速体验”验证完整流程。</div>
       <button class="primary-button dialog-submit" value="default">保存设置 <span>→</span></button>
     </form>
@@ -201,6 +202,22 @@ const emitNativePetPreferences = async (preferences = { size: floatingPetSize, o
   } catch {
     // The browser build intentionally has no native event bridge.
   }
+};
+
+const getBackgroundLaunchState = async () => {
+  if (!isTauriRuntime()) return false;
+  try {
+    const { invoke } = await import('@tauri-apps/api/core');
+    return await invoke<boolean>('is_background_launch');
+  } catch {
+    return false;
+  }
+};
+
+const autoStartTimerOnLaunch = async () => {
+  const isBackgroundLaunch = await getBackgroundLaunchState();
+  if (!shouldAutoStartTimer({ isTauri: isTauriRuntime(), isBackgroundLaunch })) return;
+  if (timer.snapshot().mode === 'idle' || timer.snapshot().mode === 'paused') timer.start();
 };
 
 const updatePetPreferenceOutputs = (size = floatingPetSize, opacity = floatingPetOpacity) => {
@@ -368,3 +385,4 @@ query<HTMLFormElement>('[data-settings-form]')?.addEventListener('submit', async
 
 render(lastSnapshot);
 updatePetPreferenceOutputs();
+void autoStartTimerOnLaunch();
